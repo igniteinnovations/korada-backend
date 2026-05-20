@@ -11,6 +11,7 @@ import adminAuthRoutes from "./routes/adminAuth.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import newsRoutes from "./routes/news.routes.js";
 import WeekendExperienceRoutes from "./routes/weekendExperience.routes.js";
+import advertisementRoutes from "./routes/advertisement.routes.js";
 const app = express();
 // Body Parser
 app.use(express.json());
@@ -36,7 +37,8 @@ app.get("/", (req, res) => {
 app.use("/api/v1/admin", adminAuthRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/news", newsRoutes);
-app.use("/api/v1/WeekendExperience", WeekendExperienceRoutes);
+app.use("/api/v1/weekend-experiences", WeekendExperienceRoutes);
+app.use("/api/v1/advertisements", advertisementRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
