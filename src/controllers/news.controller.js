@@ -111,7 +111,9 @@ export const createNews = async (req, res, next) => {
     }
 
     // 8️⃣ Generate News ID
-    const lastNews = await News.findOne().sort({
+    const lastNews = await News.findOne({
+      newsId: { $regex: /^NEWS\d+$/ },
+    }).sort({
       createdAt: -1,
     });
 
