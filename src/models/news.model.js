@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const newsSchema = new mongoose.Schema(
   {
+    newsId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
     title: {
       type: String,
       required: true,
@@ -31,9 +37,9 @@ const newsSchema = new mongoose.Schema(
       default: "",
     },
 
+    // ✅ CUSTOM CATEGORY ID
     categoryId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
+      type: String,
       required: true,
     },
 

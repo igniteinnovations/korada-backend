@@ -1,6 +1,5 @@
 import News from "../models/news.model.js";
 import Category from "../models/Category.js";
-
 import pagination from "../utils/pagination.js";
 
 // 🆕 Create News
@@ -111,8 +110,23 @@ export const createNews = async (req, res, next) => {
       });
     }
 
-    // 8️⃣ Create news
+    // 8️⃣ Generate News ID
+    const lastNews = await News.findOne().sort({
+      createdAt: -1,
+    });
+
+    let nextId = 1;
+
+    if (lastNews?.newsId) {
+      nextId = parseInt(lastNews.newsId.replace("NEWS", "")) + 1;
+    }
+
+    const newsId = `NEWS${String(nextId).padStart(4, "0")}`;
+
+    // 9️⃣ Create news
     const newsData = {
+      newsId,
+
       title: title.trim(),
 
       slug,
@@ -123,7 +137,8 @@ export const createNews = async (req, res, next) => {
 
       mediaUrl,
 
-      categoryId: existingCategory._id,
+      // ✅ SAVE CUSTOM CATEGORY ID
+      categoryId: existingCategory.categoryId,
 
       categoryName: existingCategory.categoryname,
     };
@@ -212,7 +227,7 @@ export const editNews = async (req, res, next) => {
         });
       }
 
-      news.categoryId = existingCategory._id;
+      news.categoryId = existingCategory.categoryId;
 
       news.categoryName = existingCategory.categoryname;
     }

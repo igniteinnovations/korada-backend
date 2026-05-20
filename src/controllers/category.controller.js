@@ -1,6 +1,7 @@
 import Category from "../models/Category.js";
 
 // 🆕 Create Category
+// 🆕 Create Category
 export const createCategory = async (req, res, next) => {
   try {
     const { categoryname } = req.body;
@@ -28,8 +29,25 @@ export const createCategory = async (req, res, next) => {
       });
     }
 
-    // Create category
+    // Get Last Category
+    const lastCategory = await Category.findOne({
+      categoryId: { $exists: true },
+    }).sort({
+      createdAt: -1,
+    });
+
+    let nextId = 1;
+
+    if (lastCategory?.categoryId) {
+      nextId = parseInt(lastCategory.categoryId.replace("CAT", "")) + 1;
+    }
+
+    // Generate Custom Category ID
+    const categoryId = `CAT${String(nextId).padStart(4, "0")}`;
+
+    // Create Category
     const category = await Category.create({
+      categoryId,
       categoryname: categoryname.trim(),
       slug,
     });

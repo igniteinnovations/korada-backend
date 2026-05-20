@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema(
   {
+    categoryId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+
     categoryname: {
       type: String,
       required: true,
