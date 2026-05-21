@@ -48,10 +48,19 @@ export const createWeekendExperience = async (req, res, next) => {
     }
 
     // Generate experienceId
-    const totalExperiences = await WeekendExperience.countDocuments();
+    const lastExperience = await WeekendExperience.findOne({
+      experienceId: { $regex: /^EXP\d+$/ },
+    }).sort({
+      createdAt: -1,
+    });
 
-    const experienceId = `EXP${String(totalExperiences + 1).padStart(4, "0")}`;
+    let nextId = 1;
 
+    if (lastExperience?.experienceId) {
+      nextId = parseInt(lastExperience.experienceId.replace("EXP", ""), 10) + 1;
+    }
+
+    const experienceId = `EXP${String(nextId).padStart(4, "0")}`;
     // Create experience
     const experience = await WeekendExperience.create({
       experienceId,
