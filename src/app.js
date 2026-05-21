@@ -12,6 +12,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import newsRoutes from "./routes/news.routes.js";
 import WeekendExperienceRoutes from "./routes/weekendExperience.routes.js";
 import advertisementRoutes from "./routes/advertisement.routes.js";
+import AnalyticsRoutes from "./routes/analytics.routes.js";
 const app = express();
 // Body Parser
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/weekend-experiences", WeekendExperienceRoutes);
 app.use("/api/v1/advertisements", advertisementRoutes);
+app.use("/api/v1/analytics", AnalyticsRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
