@@ -389,9 +389,15 @@ export const createNews = async (req, res, next) => {
     }
 
     // Generate newsId
-    const totalNews = await News.countDocuments();
+    const latestNews = await News.findOne().sort({ createdAt: -1 });
 
-    const newsId = `NEWS${String(totalNews + 1).padStart(4, "0")}`;
+    let newsId = "NEWS0001";
+
+    if (latestNews?.newsId) {
+      const lastNumber = parseInt(latestNews.newsId.replace("NEWS", ""));
+
+      newsId = `NEWS${String(lastNumber + 1).padStart(4, "0")}`;
+    }
 
     // Validate media type
     const validTypes = ["image", "video"];
@@ -505,29 +511,70 @@ export const editNews = async (req, res, next) => {
       });
     }
 
-    // Update title + slug
-    if (title?.trim()) {
-      news.title = title.trim();
+    // ========================================
+    // UPDATE TITLE + SLUG
+    // ========================================
 
-      news.slug = title.trim().toLowerCase().replace(/\s+/g, "-");
+    if (title?.trim()) {
+      const cleanTitle = title.trim();
+
+      const newSlug = cleanTitle.toLowerCase().replace(/\s+/g, "-");
+
+      // Check duplicate slug excluding current news
+      const existingSlug = await News.findOne({
+        slug: newSlug,
+        newsId: { $ne: id },
+      });
+
+      if (existingSlug) {
+        return res.status(409).json({
+          success: false,
+          message: "Another news with same title already exists",
+        });
+      }
+
+      news.title = cleanTitle;
+
+      news.slug = newSlug;
     }
 
-    // Update content
+    // ========================================
+    // UPDATE CONTENT
+    // ========================================
+
     if (content !== undefined) {
       news.content = content.trim();
     }
 
-    // Update media
+    // ========================================
+    // UPDATE MEDIA
+    // ========================================
+
     if (mediaUrl) {
       news.mediaUrl = mediaUrl.trim();
     }
 
-    // Update media type
+    // ========================================
+    // UPDATE MEDIA TYPE
+    // ========================================
+
     if (mediaType) {
+      const validTypes = ["image", "video"];
+
+      if (!validTypes.includes(mediaType.toLowerCase())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid media type",
+        });
+      }
+
       news.mediaType = mediaType.toLowerCase();
     }
 
-    // Update category
+    // ========================================
+    // UPDATE CATEGORY
+    // ========================================
+
     if (categoryId || categoryName) {
       let finalCategoryId = categoryId;
 
@@ -570,14 +617,20 @@ export const editNews = async (req, res, next) => {
       news.categoryName = finalCategoryName;
     }
 
+    // ========================================
+    // SAVE
+    // ========================================
+
     await news.save();
 
-    // Update analytics slug
+    // ========================================
+    // UPDATE ANALYTICS
+    // ========================================
+
     await AnalyticsStat.findOneAndUpdate(
       {
         articleId: news.newsId,
       },
-
       {
         articleSlug: news.slug,
       },
@@ -585,9 +638,7 @@ export const editNews = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-
       message: "News updated successfully",
-
       news,
     });
   } catch (error) {
