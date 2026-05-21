@@ -1,7 +1,7 @@
 import ArticleView from "../models/articleView.model.js";
 import ArticleShare from "../models/articleShare.model.js";
 import ArticleComment from "../models/articleComment.model.js";
-import AnalyticsStat from "../models/articlestats.js";
+import AnalyticsStat from "../models/articleStats.js";
 import ArticleLike from "../models/articleLike.model.js";
 
 import News from "../models/news.model.js";

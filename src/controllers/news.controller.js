@@ -352,7 +352,7 @@ import News from "../models/news.model.js";
 
 import Category from "../models/Category.js";
 
-import AnalyticsStat from "../models/articlestats.js";
+import AnalyticsStat from "../models/articleStats.js";
 
 import pagination from "../utils/pagination.js";
 
