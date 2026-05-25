@@ -9,21 +9,44 @@ const newsSchema = new mongoose.Schema(
     },
 
     title: {
-      type: String,
-      required: true,
-      trim: true,
+      english: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      telugu: {
+        type: String,
+        required: true,
+        trim: true,
+      },
     },
 
     slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
+      english: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+      },
+
+      telugu: {
+        type: String,
+        required: true,
+        lowercase: true,
+      },
     },
 
     content: {
-      type: String,
-      required: true,
+      english: {
+        type: String,
+        required: true,
+      },
+
+      telugu: {
+        type: String,
+        required: true,
+      },
     },
 
     mediaType: {
@@ -47,7 +70,12 @@ const newsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isAutoTranslated: {
+      type: Boolean,
+      default: true,
+    },
   },
+
   {
     timestamps: true,
   },

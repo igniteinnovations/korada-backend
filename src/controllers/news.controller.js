@@ -160,7 +160,7 @@
 // };
 
 // // 🆕 Edit News
-// export const editNews = async (req, res, next) => {
+// export const edi tNews = async (req, res, next) => {
 //   try {
 //     const { id } = req.params;
 
@@ -349,7 +349,7 @@
 // };
 
 import News from "../models/news.model.js";
-
+import { translateText } from "../utils/translate.js";
 import Category from "../models/Category.js";
 
 import AnalyticsStat from "../models/articleStats.js";
@@ -374,11 +374,23 @@ export const createNews = async (req, res, next) => {
     }
 
     // Generate slug
-    const slug = title.trim().toLowerCase().replace(/\s+/g, "-");
+    const englishTitle = title.trim();
+
+    const englishContent = content?.trim() || "";
+
+    // Auto Translation
+    const teluguTitle = await translateText(englishTitle, "te");
+
+    const teluguContent = await translateText(englishContent, "te");
+
+    // Slugs
+    const englishSlug = englishTitle.toLowerCase().replace(/\s+/g, "-");
+
+    const teluguSlug = teluguTitle.replace(/\s+/g, "-");
 
     // Duplicate slug check
     const existingNews = await News.findOne({
-      slug,
+      "slug.english": englishSlug,
     });
 
     if (existingNews) {
@@ -450,11 +462,20 @@ export const createNews = async (req, res, next) => {
     const newsData = {
       newsId,
 
-      title: title.trim(),
+      title: {
+        english: englishTitle,
+        telugu: teluguTitle,
+      },
 
-      slug,
+      slug: {
+        english: englishSlug,
+        telugu: teluguSlug,
+      },
 
-      content: content?.trim() || "",
+      content: {
+        english: englishContent,
+        telugu: teluguContent,
+      },
 
       mediaType: finalMediaType,
 
@@ -471,7 +492,7 @@ export const createNews = async (req, res, next) => {
     await AnalyticsStat.create({
       articleId: newNews.newsId,
 
-      articleSlug: newNews.slug,
+      articleSlug: newNews.slug.english,
     });
 
     res.status(201).json({
@@ -516,13 +537,17 @@ export const editNews = async (req, res, next) => {
     // ========================================
 
     if (title?.trim()) {
-      const cleanTitle = title.trim();
+      const englishTitle = title.trim();
 
-      const newSlug = cleanTitle.toLowerCase().replace(/\s+/g, "-");
+      const teluguTitle = await translateText(englishTitle, "te");
+
+      const newEnglishSlug = englishTitle.toLowerCase().replace(/\s+/g, "-");
+
+      const newTeluguSlug = teluguTitle.replace(/\s+/g, "-");
 
       // Check duplicate slug excluding current news
       const existingSlug = await News.findOne({
-        slug: newSlug,
+        "slug.english": newEnglishSlug,
         newsId: { $ne: id },
       });
 
@@ -533,9 +558,15 @@ export const editNews = async (req, res, next) => {
         });
       }
 
-      news.title = cleanTitle;
+      news.title = {
+        english: englishTitle,
+        telugu: teluguTitle,
+      };
 
-      news.slug = newSlug;
+      news.slug = {
+        english: newEnglishSlug,
+        telugu: newTeluguSlug,
+      };
     }
 
     // ========================================
@@ -543,7 +574,14 @@ export const editNews = async (req, res, next) => {
     // ========================================
 
     if (content !== undefined) {
-      news.content = content.trim();
+      const englishContent = content.trim();
+
+      const teluguContent = await translateText(englishContent, "te");
+
+      news.content = {
+        english: englishContent,
+        telugu: teluguContent,
+      };
     }
 
     // ========================================
@@ -749,7 +787,7 @@ export const getNewsBySlug = async (req, res, next) => {
     const { slug } = req.params;
 
     const news = await News.findOne({
-      slug,
+      $or: [{ "slug.english": slug }, { "slug.telugu": slug }],
     }).lean();
 
     if (!news) {

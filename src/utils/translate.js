@@ -1,0 +1,25 @@
+import axios from "axios";
+
+export const translateText = async (text, targetLanguage) => {
+  try {
+    if (!text) return "";
+
+    const response = await axios.post(
+      "https://translation.googleapis.com/language/translate/v2",
+      {},
+      {
+        params: {
+          q: text,
+          target: targetLanguage,
+          key: process.env.GOOGLE_TRANSLATE_API_KEY,
+        },
+      },
+    );
+
+    return response.data.data.translations[0].translatedText;
+  } catch (error) {
+    console.error("Translation Error:", error.response?.data || error.message);
+
+    return text;
+  }
+};
