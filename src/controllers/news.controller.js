@@ -547,8 +547,12 @@ export const editNews = async (req, res, next) => {
     // UPDATE TITLE + SLUG
     // ========================================
 
-    if (title?.trim()) {
-      const englishTitle = title.trim();
+    if (
+      title &&
+      ((typeof title === "string" && title.trim()) || title.english)
+    ) {
+      const englishTitle =
+        typeof title === "string" ? title.trim() : title.english?.trim();
 
       const teluguTitle = await translateText(englishTitle, "te");
 
@@ -588,7 +592,10 @@ export const editNews = async (req, res, next) => {
     // ========================================
 
     if (content !== undefined) {
-      const englishContent = content.trim();
+      const englishContent =
+        typeof content === "string"
+          ? content.trim()
+          : content?.english?.trim() || "";
 
       const teluguContent = await translateText(englishContent, "te");
 
