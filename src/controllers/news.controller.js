@@ -366,7 +366,11 @@ export const createNews = async (req, res, next) => {
       req.body;
 
     // Validate title
-    if (!title?.trim()) {
+    if (
+      !title ||
+      (typeof title !== "string" && !title.english) ||
+      (typeof title === "string" && !title.trim())
+    ) {
       return res.status(400).json({
         success: false,
         message: "Title is required",
@@ -374,9 +378,12 @@ export const createNews = async (req, res, next) => {
     }
 
     // Generate slug
-    const englishTitle = title.trim();
-
-    const englishContent = content?.trim() || "";
+    const englishTitle =
+      typeof title === "string" ? title.trim() : title.english?.trim();
+    const englishContent =
+      typeof content === "string"
+        ? content.trim()
+        : content?.english?.trim() || "";
 
     // Auto Translation
     const teluguTitle = await translateText(englishTitle, "te");
@@ -430,7 +437,7 @@ export const createNews = async (req, res, next) => {
     // Category handling
     let finalCategoryId = categoryId || null;
 
-    let finalCategoryName = "";
+    let finalCategoryName = {};
 
     if (categoryId) {
       const category = await Category.findOne({
@@ -623,11 +630,11 @@ export const editNews = async (req, res, next) => {
     if (categoryId || categoryName) {
       let finalCategoryId = categoryId;
 
-      let finalCategoryName = categoryName?.trim();
+      let finalCategoryName = {};
 
       if (categoryId) {
         const category = await Category.findOne({
-          categoryId,
+          categoryId: id,
         });
 
         if (!category) {
