@@ -447,7 +447,7 @@ export const createNews = async (req, res, next) => {
       finalCategoryName = category.categoryname;
     } else if (categoryName?.trim()) {
       const category = await Category.findOne({
-        categoryname: categoryName.trim(),
+        "categoryname.english": categoryName.trim(),
       });
 
       if (!category) {
@@ -642,7 +642,7 @@ export const editNews = async (req, res, next) => {
         finalCategoryName = category.categoryname;
       } else if (categoryName?.trim()) {
         const category = await Category.findOne({
-          categoryname: categoryName.trim(),
+          "categoryname.english": categoryName.trim(),
         });
 
         if (!category) {
@@ -677,7 +677,7 @@ export const editNews = async (req, res, next) => {
         articleId: news.newsId,
       },
       {
-        articleSlug: news.slug,
+        articleSlug: news.slug.english,
       },
     );
 
@@ -748,7 +748,7 @@ export const getAllNews = async (req, res, next) => {
     }
 
     if (categoryName) {
-      filter.categoryName = {
+      filter["categoryName.english"] = {
         $regex: new RegExp(categoryName, "i"),
       };
     }
