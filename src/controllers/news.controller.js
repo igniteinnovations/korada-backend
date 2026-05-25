@@ -386,7 +386,11 @@ export const createNews = async (req, res, next) => {
     // Slugs
     const englishSlug = englishTitle.toLowerCase().replace(/\s+/g, "-");
 
-    const teluguSlug = teluguTitle.replace(/\s+/g, "-");
+    const teluguSlug = teluguTitle
+      .toLowerCase()
+      .replace(/[^\u0C00-\u0C7Fa-zA-Z0-9\s]/g, "")
+      .replace(/\s+/g, "-")
+      .trim();
 
     // Duplicate slug check
     const existingNews = await News.findOne({
@@ -543,8 +547,11 @@ export const editNews = async (req, res, next) => {
 
       const newEnglishSlug = englishTitle.toLowerCase().replace(/\s+/g, "-");
 
-      const newTeluguSlug = teluguTitle.replace(/\s+/g, "-");
-
+      const newTeluguSlug = teluguTitle
+        .toLowerCase()
+        .replace(/[^\u0C00-\u0C7Fa-zA-Z0-9\s]/g, "")
+        .replace(/\s+/g, "-")
+        .trim();
       // Check duplicate slug excluding current news
       const existingSlug = await News.findOne({
         "slug.english": newEnglishSlug,

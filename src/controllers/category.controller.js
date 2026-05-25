@@ -1,7 +1,7 @@
 import Category from "../models/Category.js";
+import { translateText } from "../utils/translate.js";
+// 🆕 Create Category
 
-// 🆕 Create Category
-// 🆕 Create Category
 export const createCategory = async (req, res, next) => {
   try {
     const { categoryname } = req.body;
@@ -15,11 +15,28 @@ export const createCategory = async (req, res, next) => {
     }
 
     // Generate slug
-    const slug = categoryname.trim().toLowerCase().replace(/\s+/g, "-");
+    const englishCategory = categoryname.trim();
+
+    // Telugu Translation
+    const teluguCategory = await translateText(englishCategory, "te");
+
+    // English Slug
+    const englishSlug = englishCategory.toLowerCase().replace(/\s+/g, "-");
+
+    // Telugu Slug
+    const teluguSlug = teluguCategory
+      .toLowerCase()
+      .replace(/[^\u0C00-\u0C7Fa-zA-Z0-9\s]/g, "")
+      .replace(/\s+/g, "-")
+      .trim();
 
     // Check existing category
     const existingCategory = await Category.findOne({
-      $or: [{ categoryname: categoryname.trim() }, { slug }],
+      $or: [
+        { "categoryname.english": englishCategory },
+
+        { "slug.english": englishSlug },
+      ],
     });
 
     if (existingCategory) {
@@ -48,8 +65,15 @@ export const createCategory = async (req, res, next) => {
     // Create Category
     const category = await Category.create({
       categoryId,
-      categoryname: categoryname.trim(),
-      slug,
+      categoryname: {
+        english: englishCategory,
+        telugu: teluguCategory,
+      },
+
+      slug: {
+        english: englishSlug,
+        telugu: teluguSlug,
+      },
     });
 
     res.status(201).json({
@@ -108,11 +132,21 @@ export const editCategory = async (req, res, next) => {
     }
 
     // Generate slug
-    const slug = categoryname.trim().toLowerCase().replace(/\s+/g, "-");
+    const englishCategory = categoryname.trim();
+
+    const teluguCategory = await translateText(englishCategory, "te");
+
+    const englishSlug = englishCategory.toLowerCase().replace(/\s+/g, "-");
+
+    const teluguSlug = teluguCategory
+      .toLowerCase()
+      .replace(/[^\u0C00-\u0C7Fa-zA-Z0-9\s]/g, "")
+      .replace(/\s+/g, "-")
+      .trim();
 
     // Duplicate check
     const existingCategory = await Category.findOne({
-      slug,
+      "slug.english": englishSlug,
       _id: { $ne: id },
     });
 
@@ -124,8 +158,15 @@ export const editCategory = async (req, res, next) => {
     }
 
     // Update category
-    category.categoryname = categoryname.trim();
-    category.slug = slug;
+    category.categoryname = {
+      english: englishCategory,
+      telugu: teluguCategory,
+    };
+
+    category.slug = {
+      english: englishSlug,
+      telugu: teluguSlug,
+    };
 
     await category.save();
 

@@ -9,17 +9,31 @@ const categorySchema = new mongoose.Schema(
     },
 
     categoryname: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
+      english: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      telugu: {
+        type: String,
+        required: true,
+        trim: true,
+      },
     },
 
     slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
+      english: {
+        type: String,
+        required: true,
+        lowercase: true,
+      },
+
+      telugu: {
+        type: String,
+        required: true,
+        lowercase: true,
+      },
     },
   },
   {
