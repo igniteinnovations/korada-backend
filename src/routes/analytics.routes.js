@@ -4,9 +4,7 @@ import auth from "../middleware/auth.js";
 
 import {
   trackView,
-  toggleLike,
-  trackShare,
-  trackComment,
+  trackSession,
   getArticleStats,
   getTrendingArticles,
 } from "../controllers/analytics.controller.js";
@@ -20,13 +18,8 @@ const router = express.Router();
 // Track View
 router.post("/track/view", trackView);
 
-// Track Share
-router.post("/track/share", trackShare);
-
-// Track Comment
-router.post("/track/comment", trackComment);
-//like
-router.post("/track/like", toggleLike);
+// Track Session Time + Bounce Rate
+router.post("/track/session", trackSession);
 
 // ========================================
 // PUBLIC ANALYTICS ROUTES
@@ -42,7 +35,6 @@ router.get("/trending", getTrendingArticles);
 // ADMIN ROUTES
 // ========================================
 
-// Example admin protection
 router.get("/admin/test", auth, (req, res) => {
   res.status(200).json({
     success: true,

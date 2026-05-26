@@ -9,38 +9,28 @@ const categorySchema = new mongoose.Schema(
     },
 
     categoryname: {
-      english: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-
-      telugu: {
-        type: String,
-        required: true,
-        trim: true,
-      },
+      type: String,
+      required: true,
+      trim: true,
     },
 
     slug: {
-      english: {
-        type: String,
-        required: true,
-        lowercase: true,
-      },
+      type: String,
+      required: true,
+      lowercase: true,
+    },
 
-      telugu: {
-        type: String,
-        required: true,
-        lowercase: true,
-      },
+    language: {
+      type: String,
+      enum: ["english", "telugu"],
+      required: true,
     },
   },
   {
     timestamps: true,
   },
 );
-
+categorySchema.index({ slug: 1, language: 1 }, { unique: true });
 const Category = mongoose.model("Category", categorySchema);
 
 export default Category;

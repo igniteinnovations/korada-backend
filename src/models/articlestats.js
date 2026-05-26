@@ -8,26 +8,38 @@ const analyticsStatSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
-    totalLikes: {
-      type: Number,
-      default: 0,
-    },
+
     articleSlug: {
       type: String,
       required: true,
     },
 
+    // 👁 Total Views
     totalViews: {
       type: Number,
       default: 0,
     },
 
-    totalShares: {
+    // ⏱ Total Time Spent By All Users (seconds)
+    totalSessionTime: {
       type: Number,
       default: 0,
     },
 
-    totalComments: {
+    // ⏱ Average Reading Time
+    averageSessionTime: {
+      type: Number,
+      default: 0,
+    },
+
+    // 🚪 Bounce Users
+    bounceCount: {
+      type: Number,
+      default: 0,
+    },
+
+    // 📉 Bounce Percentage
+    bounceRate: {
       type: Number,
       default: 0,
     },

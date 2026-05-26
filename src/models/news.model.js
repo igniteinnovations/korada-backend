@@ -9,44 +9,27 @@ const newsSchema = new mongoose.Schema(
     },
 
     title: {
-      english: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-
-      telugu: {
-        type: String,
-        required: true,
-        trim: true,
-      },
+      type: String,
+      required: true,
+      trim: true,
     },
 
     slug: {
-      english: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-      },
+      type: String,
+      required: true,
 
-      telugu: {
-        type: String,
-        required: true,
-        lowercase: true,
-      },
+      lowercase: true,
     },
 
     content: {
-      english: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
 
-      telugu: {
-        type: String,
-        required: true,
-      },
+    language: {
+      type: String,
+      enum: ["english", "telugu"],
+      required: true,
     },
 
     mediaType: {
@@ -60,7 +43,6 @@ const newsSchema = new mongoose.Schema(
       default: "",
     },
 
-    // ✅ CUSTOM CATEGORY ID
     categoryId: {
       type: String,
       required: true,
@@ -70,17 +52,48 @@ const newsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    isAutoTranslated: {
-      type: Boolean,
-      default: true,
+    styles: {
+      titleFontSize: {
+        type: String,
+        default: "32px",
+      },
+
+      contentFontSize: {
+        type: String,
+        default: "18px",
+      },
+
+      fontFamily: {
+        type: String,
+        default: "Arial",
+      },
+
+      titleColor: {
+        type: String,
+        default: "#000000",
+      },
+
+      contentColor: {
+        type: String,
+        default: "#333333",
+      },
+
+      isBold: {
+        type: Boolean,
+        default: false,
+      },
+
+      isItalic: {
+        type: Boolean,
+        default: false,
+      },
     },
   },
-
   {
     timestamps: true,
   },
 );
-
+newsSchema.index({ slug: 1, language: 1 }, { unique: true });
 const News = mongoose.model("News", newsSchema);
 
 export default News;

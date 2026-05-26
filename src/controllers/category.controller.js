@@ -1,10 +1,12 @@
 import Category from "../models/Category.js";
-import { translateText } from "../utils/translate.js";
-// 🆕 Create Category
+import News from "../models/news.model.js";
+// ========================================
+// CREATE CATEGORY
+// ========================================
 
 export const createCategory = async (req, res, next) => {
   try {
-    const { categoryname } = req.body;
+    const { categoryname, language } = req.body;
 
     // Validation
     if (!categoryname?.trim()) {
@@ -14,29 +16,21 @@ export const createCategory = async (req, res, next) => {
       });
     }
 
+    // Validate language
+    if (!["english", "telugu"].includes(language)) {
+      return res.status(400).json({
+        success: false,
+        message: "Language must be english or telugu",
+      });
+    }
+
     // Generate slug
-    const englishCategory = categoryname.trim();
-
-    // Telugu Translation
-    const teluguCategory = await translateText(englishCategory, "te");
-
-    // English Slug
-    const englishSlug = englishCategory.toLowerCase().replace(/\s+/g, "-");
-
-    // Telugu Slug
-    const teluguSlug = teluguCategory
-      .toLowerCase()
-      .replace(/[^\u0C00-\u0C7Fa-zA-Z0-9\s]/g, "")
-      .replace(/\s+/g, "-")
-      .trim();
+    const slug = categoryname.trim().toLowerCase().replace(/\s+/g, "-");
 
     // Check existing category
     const existingCategory = await Category.findOne({
-      $or: [
-        { "categoryname.english": englishCategory },
-
-        { "slug.english": englishSlug },
-      ],
+      slug,
+      language,
     });
 
     if (existingCategory) {
@@ -59,21 +53,18 @@ export const createCategory = async (req, res, next) => {
       nextId = parseInt(lastCategory.categoryId.replace("CAT", "")) + 1;
     }
 
-    // Generate Custom Category ID
+    // Generate Category ID
     const categoryId = `CAT${String(nextId).padStart(4, "0")}`;
 
     // Create Category
     const category = await Category.create({
       categoryId,
-      categoryname: {
-        english: englishCategory,
-        telugu: teluguCategory,
-      },
 
-      slug: {
-        english: englishSlug,
-        telugu: teluguSlug,
-      },
+      categoryname: categoryname.trim(),
+
+      slug,
+
+      language,
     });
 
     res.status(201).json({
@@ -88,10 +79,21 @@ export const createCategory = async (req, res, next) => {
   }
 };
 
-// 🆕 Get All Categories
+// ========================================
+// GET ALL CATEGORIES
+// ========================================
+
 export const getAllCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find().sort({
+    const { language } = req.query;
+
+    const filter = {};
+
+    if (language) {
+      filter.language = language;
+    }
+
+    const categories = await Category.find(filter).sort({
       createdAt: -1,
     });
 
@@ -106,18 +108,29 @@ export const getAllCategories = async (req, res, next) => {
   }
 };
 
-// 🆕 Edit Category
+// ========================================
+// EDIT CATEGORY
+// ========================================
+
 export const editCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const { categoryname } = req.body;
+    const { categoryname, language } = req.body;
 
     // Validation
     if (!categoryname?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Category name is required",
+      });
+    }
+
+    // Validate language
+    if (!["english", "telugu"].includes(language)) {
+      return res.status(400).json({
+        success: false,
+        message: "Language must be english or telugu",
       });
     }
 
@@ -132,21 +145,12 @@ export const editCategory = async (req, res, next) => {
     }
 
     // Generate slug
-    const englishCategory = categoryname.trim();
-
-    const teluguCategory = await translateText(englishCategory, "te");
-
-    const englishSlug = englishCategory.toLowerCase().replace(/\s+/g, "-");
-
-    const teluguSlug = teluguCategory
-      .toLowerCase()
-      .replace(/[^\u0C00-\u0C7Fa-zA-Z0-9\s]/g, "")
-      .replace(/\s+/g, "-")
-      .trim();
+    const slug = categoryname.trim().toLowerCase().replace(/\s+/g, "-");
 
     // Duplicate check
     const existingCategory = await Category.findOne({
-      "slug.english": englishSlug,
+      slug,
+      language,
       _id: { $ne: id },
     });
 
@@ -158,17 +162,22 @@ export const editCategory = async (req, res, next) => {
     }
 
     // Update category
-    category.categoryname = {
-      english: englishCategory,
-      telugu: teluguCategory,
-    };
+    category.categoryname = categoryname.trim();
 
-    category.slug = {
-      english: englishSlug,
-      telugu: teluguSlug,
-    };
+    category.slug = slug;
+
+    category.language = language;
 
     await category.save();
+    // ✅ Sync category name in news
+    await News.updateMany(
+      { categoryId: category.categoryId },
+      {
+        $set: {
+          categoryName: category.categoryname,
+        },
+      },
+    );
 
     res.status(200).json({
       success: true,
@@ -182,12 +191,15 @@ export const editCategory = async (req, res, next) => {
   }
 };
 
-// 🆕 Delete Category
+// ========================================
+// DELETE CATEGORY
+// ========================================
+
 export const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const category = await Category.findByIdAndDelete(id);
+    const category = await Category.findById(id);
 
     if (!category) {
       return res.status(404).json({
@@ -195,6 +207,21 @@ export const deleteCategory = async (req, res, next) => {
         message: "Category not found",
       });
     }
+
+    // ✅ Check linked news
+    const newsExists = await News.exists({
+      categoryId: category.categoryId,
+    });
+
+    if (newsExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete category linked with news",
+      });
+    }
+
+    // ✅ Delete category
+    await category.deleteOne();
 
     res.status(200).json({
       success: true,
