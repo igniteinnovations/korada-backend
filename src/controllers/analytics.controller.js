@@ -78,7 +78,7 @@ export const trackView = async (req, res, next) => {
 
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
       },
     );
 
