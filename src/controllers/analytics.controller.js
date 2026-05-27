@@ -99,7 +99,9 @@ export const trackView = async (req, res, next) => {
 
 export const trackSession = async (req, res, next) => {
   try {
-    const { articleId, sessionTime } = req.body;
+    const { articleId, seconds, sessionId, device } = req.body;
+
+    const sessionTime = seconds;
     console.log(req.body);
     // Validate
     if (!articleId || sessionTime === undefined) {
