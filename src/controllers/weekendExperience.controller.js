@@ -2,7 +2,7 @@ import WeekendExperience from "../models/weekendExperience.model.js";
 
 import pagination from "../utils/pagination.js";
 
-// 🆕 Create Weekend Experience
+//  Create Weekend Experience
 export const createWeekendExperience = async (req, res, next) => {
   try {
     const {

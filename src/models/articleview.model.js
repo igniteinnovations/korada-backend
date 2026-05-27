@@ -22,11 +22,12 @@ const articleViewSchema = new mongoose.Schema(
     sessionId: {
       type: String,
       default: null,
+      index: true,
     },
 
     device: {
       type: String,
-      enum: ["mobile", "tablet", "desktop"],
+      enum: ["mobile", "tablet", "desktop", "unknown"],
       default: "desktop",
     },
   },

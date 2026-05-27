@@ -31,6 +31,11 @@ const analyticsStatSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // 🧠 Total Sessions
+    totalSessions: {
+      type: Number,
+      default: 0,
+    },
 
     // 🚪 Bounce Users
     bounceCount: {

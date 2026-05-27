@@ -1,7 +1,7 @@
 import ArticleView from "../models/articleView.model.js";
 import AnalyticsStat from "../models/articleStats.js";
 import News from "../models/news.model.js";
-
+import { v4 as uuidv4 } from "uuid";
 // ========================================
 // TRACK VIEW
 // ========================================
@@ -30,10 +30,20 @@ export const trackView = async (req, res, next) => {
       });
     }
 
-    // Generate viewId
-    const totalViews = await ArticleView.countDocuments();
+    const viewId = uuidv4();
+    if (sessionId) {
+      const existingView = await ArticleView.findOne({
+        articleId,
+        sessionId,
+      });
 
-    const viewId = `VIEW${String(totalViews + 1).padStart(6, "0")}`;
+      if (existingView) {
+        return res.status(200).json({
+          success: true,
+          message: "View already counted",
+        });
+      }
+    }
 
     // Create view
     await ArticleView.create({
@@ -46,7 +56,7 @@ export const trackView = async (req, res, next) => {
 
       sessionId,
 
-      device,
+      device: device || "unknown",
     });
 
     // Update stats
@@ -90,12 +100,25 @@ export const trackView = async (req, res, next) => {
 export const trackSession = async (req, res, next) => {
   try {
     const { articleId, sessionTime } = req.body;
-
+    console.log(req.body);
     // Validate
     if (!articleId || sessionTime === undefined) {
       return res.status(400).json({
         success: false,
         message: "articleId and sessionTime are required",
+      });
+    }
+    if (Number(sessionTime) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid session time",
+      });
+    }
+
+    if (Number(sessionTime) > 7200) {
+      return res.status(400).json({
+        success: false,
+        message: "Session time too large",
       });
     }
 
@@ -114,16 +137,18 @@ export const trackSession = async (req, res, next) => {
     // Update session time
     stats.totalSessionTime += Number(sessionTime);
 
+    stats.totalSessions += 1;
+
     // Bounce detection
     if (Number(sessionTime) <= 5) {
       stats.bounceCount += 1;
     }
 
     // Average session
-    if (stats.totalViews > 0) {
-      stats.averageSessionTime = stats.totalSessionTime / stats.totalViews;
+    if (stats.totalSessions > 0) {
+      stats.averageSessionTime = stats.totalSessionTime / stats.totalSessions;
 
-      stats.bounceRate = (stats.bounceCount / stats.totalViews) * 100;
+      stats.bounceRate = (stats.bounceCount / stats.totalSessions) * 100;
     }
 
     await stats.save();
@@ -178,11 +203,30 @@ export const getTrendingArticles = async (req, res, next) => {
   try {
     const { limit = 10 } = req.query;
 
-    const trending = await AnalyticsStat.find()
-      .sort({
-        totalViews: -1,
-      })
-      .limit(Number(limit));
+    const trending = await AnalyticsStat.aggregate([
+      {
+        $sort: {
+          totalViews: -1,
+        },
+      },
+
+      {
+        $limit: Number(limit),
+      },
+
+      {
+        $lookup: {
+          from: "news",
+          localField: "articleId",
+          foreignField: "newsId",
+          as: "article",
+        },
+      },
+
+      {
+        $unwind: "$article",
+      },
+    ]);
 
     res.status(200).json({
       success: true,
@@ -190,6 +234,26 @@ export const getTrendingArticles = async (req, res, next) => {
     });
   } catch (error) {
     console.error("❌ Error fetching trending articles:", error);
+
+    next(error);
+  }
+};
+
+//get all stats
+
+export const getAllAnalytics = async (req, res, next) => {
+  try {
+    const analytics = await AnalyticsStat.find().sort({
+      totalViews: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      total: analytics.length,
+      analytics,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching analytics:", error);
 
     next(error);
   }

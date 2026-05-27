@@ -7,6 +7,7 @@ import {
   trackSession,
   getArticleStats,
   getTrendingArticles,
+  getAllAnalytics,
 } from "../controllers/analytics.controller.js";
 
 const router = express.Router();
@@ -34,7 +35,7 @@ router.get("/trending", getTrendingArticles);
 // ========================================
 // ADMIN ROUTES
 // ========================================
-
+router.get("/admin/all", auth, getAllAnalytics);
 router.get("/admin/test", auth, (req, res) => {
   res.status(200).json({
     success: true,
