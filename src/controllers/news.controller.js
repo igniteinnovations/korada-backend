@@ -17,7 +17,6 @@ export const createNews = async (req, res, next) => {
       categoryId,
       categoryName,
       language,
-      styles,
     } = req.body;
 
     // Validate title
@@ -130,7 +129,6 @@ export const createNews = async (req, res, next) => {
       categoryId: finalCategoryId,
 
       categoryName: finalCategoryName,
-      styles: styles || {},
     };
 
     const newNews = await News.create(newsData);
@@ -170,7 +168,6 @@ export const editNews = async (req, res, next) => {
       categoryId,
       categoryName,
       language,
-      styles,
     } = req.body;
 
     // Find news
@@ -312,12 +309,7 @@ export const editNews = async (req, res, next) => {
 
       news.categoryName = finalCategoryName;
     }
-    if (styles) {
-      news.styles = {
-        ...news.styles,
-        ...styles,
-      };
-    }
+
     // Save
     await news.save();
 
