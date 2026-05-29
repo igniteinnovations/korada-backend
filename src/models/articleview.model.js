@@ -27,8 +27,8 @@ const articleViewSchema = new mongoose.Schema(
 
     device: {
       type: String,
-      enum: ["mobile", "tablet", "desktop", "unknown"],
-      default: "desktop",
+      enum: ["web", "mobile", "tablet", "desktop", "unknown"],
+      default: "web",
     },
   },
   {

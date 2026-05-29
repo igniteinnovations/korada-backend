@@ -52,6 +52,24 @@ const newsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    expertName: {
+      type: String,
+      trim: true,
+    },
+
+    expertRole: {
+      type: String,
+      trim: true,
+    },
+
+    expertImage: {
+      type: String,
+    },
+
+    shortBio: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

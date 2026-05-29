@@ -17,6 +17,11 @@ export const createNews = async (req, res, next) => {
       categoryId,
       categoryName,
       language,
+
+      expertName,
+      expertRole,
+      expertImage,
+      shortBio,
     } = req.body;
 
     // Validate title
@@ -109,7 +114,14 @@ export const createNews = async (req, res, next) => {
 
       finalCategoryName = category.categoryname;
     }
-
+    if (finalCategoryName?.toLowerCase() === "expertvoices") {
+      if (!expertName || !expertRole || !expertImage || !shortBio) {
+        return res.status(400).json({
+          success: false,
+          message: "All expert fields are required",
+        });
+      }
+    }
     // Create News
     const newsData = {
       newsId,
@@ -129,6 +141,10 @@ export const createNews = async (req, res, next) => {
       categoryId: finalCategoryId,
 
       categoryName: finalCategoryName,
+      expertName,
+      expertRole,
+      expertImage,
+      shortBio,
     };
 
     const newNews = await News.create(newsData);
@@ -168,6 +184,10 @@ export const editNews = async (req, res, next) => {
       categoryId,
       categoryName,
       language,
+      expertName,
+      expertRole,
+      expertImage,
+      shortBio,
     } = req.body;
 
     // Find news
@@ -309,7 +329,21 @@ export const editNews = async (req, res, next) => {
 
       news.categoryName = finalCategoryName;
     }
+    if (expertName !== undefined) {
+      news.expertName = expertName;
+    }
 
+    if (expertRole !== undefined) {
+      news.expertRole = expertRole;
+    }
+
+    if (expertImage !== undefined) {
+      news.expertImage = expertImage;
+    }
+
+    if (shortBio !== undefined) {
+      news.shortBio = shortBio;
+    }
     // Save
     await news.save();
 
