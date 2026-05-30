@@ -8,7 +8,13 @@ const categorySchema = new mongoose.Schema(
       required: true,
     },
 
-    categoryname: {
+    englishName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    teluguName: {
       type: String,
       required: true,
       trim: true,
@@ -17,20 +23,16 @@ const categorySchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
+      unique: true,
       lowercase: true,
-    },
-
-    language: {
-      type: String,
-      enum: ["english", "telugu"],
-      required: true,
+      trim: true,
     },
   },
   {
     timestamps: true,
   },
 );
-categorySchema.index({ slug: 1, language: 1 }, { unique: true });
+
 const Category = mongoose.model("Category", categorySchema);
 
 export default Category;

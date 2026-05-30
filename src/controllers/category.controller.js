@@ -6,31 +6,22 @@ import News from "../models/news.model.js";
 
 export const createCategory = async (req, res, next) => {
   try {
-    const { categoryname, language } = req.body;
+    const { englishName, teluguName } = req.body;
 
     // Validation
-    if (!categoryname?.trim()) {
+    if (!englishName?.trim() || !teluguName?.trim()) {
       return res.status(400).json({
         success: false,
-        message: "Category name is required",
-      });
-    }
-
-    // Validate language
-    if (!["english", "telugu"].includes(language)) {
-      return res.status(400).json({
-        success: false,
-        message: "Language must be english or telugu",
+        message: "English and Telugu names are required",
       });
     }
 
     // Generate slug
-    const slug = categoryname.trim().toLowerCase().replace(/\s+/g, "-");
+    const slug = englishName.trim().toLowerCase().replace(/\s+/g, "-");
 
     // Check existing category
     const existingCategory = await Category.findOne({
       slug,
-      language,
     });
 
     if (existingCategory) {
@@ -59,12 +50,9 @@ export const createCategory = async (req, res, next) => {
     // Create Category
     const category = await Category.create({
       categoryId,
-
-      categoryname: categoryname.trim(),
-
+      englishName: englishName.trim(),
+      teluguName: teluguName.trim(),
       slug,
-
-      language,
     });
 
     res.status(201).json({
@@ -85,15 +73,7 @@ export const createCategory = async (req, res, next) => {
 
 export const getAllCategories = async (req, res, next) => {
   try {
-    const { language } = req.query;
-
-    const filter = {};
-
-    if (language) {
-      filter.language = language;
-    }
-
-    const categories = await Category.find(filter).sort({
+    const categories = await Category.find().sort({
       createdAt: -1,
     });
 
@@ -116,21 +96,13 @@ export const editCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const { categoryname, language } = req.body;
+    const { englishName, teluguName } = req.body;
 
     // Validation
-    if (!categoryname?.trim()) {
+    if (!englishName?.trim() || !teluguName?.trim()) {
       return res.status(400).json({
         success: false,
-        message: "Category name is required",
-      });
-    }
-
-    // Validate language
-    if (!["english", "telugu"].includes(language)) {
-      return res.status(400).json({
-        success: false,
-        message: "Language must be english or telugu",
+        message: "English and Telugu names are required",
       });
     }
 
@@ -144,13 +116,11 @@ export const editCategory = async (req, res, next) => {
       });
     }
 
-    // Generate slug
-    const slug = categoryname.trim().toLowerCase().replace(/\s+/g, "-");
+    const slug = englishName.trim().toLowerCase().replace(/\s+/g, "");
 
     // Duplicate check
     const existingCategory = await Category.findOne({
       slug,
-      language,
       _id: { $ne: id },
     });
 
@@ -161,12 +131,9 @@ export const editCategory = async (req, res, next) => {
       });
     }
 
-    // Update category
-    category.categoryname = categoryname.trim();
-
+    category.englishName = englishName.trim();
+    category.teluguName = teluguName.trim();
     category.slug = slug;
-
-    category.language = language;
 
     await category.save();
     // ✅ Sync category name in news
@@ -174,7 +141,7 @@ export const editCategory = async (req, res, next) => {
       { categoryId: category.categoryId },
       {
         $set: {
-          categoryName: category.categoryname,
+          categorySlug: category.slug,
         },
       },
     );

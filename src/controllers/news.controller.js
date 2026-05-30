@@ -15,7 +15,7 @@ export const createNews = async (req, res, next) => {
       mediaType,
       mediaUrl,
       categoryId,
-      categoryName,
+
       language,
 
       expertName,
@@ -23,7 +23,12 @@ export const createNews = async (req, res, next) => {
       expertImage,
       shortBio,
     } = req.body;
-
+    if (!categoryId?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Category is required",
+      });
+    }
     // Validate title
     if (!title?.trim()) {
       return res.status(400).json({
@@ -46,6 +51,7 @@ export const createNews = async (req, res, next) => {
     // Duplicate slug check
     const existingNews = await News.findOne({
       slug,
+      language,
     });
 
     if (existingNews) {
@@ -81,40 +87,20 @@ export const createNews = async (req, res, next) => {
     }
 
     // Category handling
-    let finalCategoryId = categoryId || null;
+    const category = await Category.findOne({
+      categoryId,
+    });
 
-    let finalCategoryName = "";
-
-    if (categoryId) {
-      const category = await Category.findOne({
-        categoryId,
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
       });
-
-      if (!category) {
-        return res.status(404).json({
-          success: false,
-          message: "Category not found",
-        });
-      }
-      // ✅ Language validation
-      if (category.language !== language) {
-        return res.status(400).json({
-          success: false,
-          message: "Category language mismatch",
-        });
-      }
-      finalCategoryName = category.categoryname;
-    } else if (categoryName?.trim()) {
-      const category = await Category.findOne({
-        categoryname: categoryName.trim(),
-        language,
-      });
-
-      finalCategoryId = category.categoryId;
-
-      finalCategoryName = category.categoryname;
     }
-    if (finalCategoryName?.toLowerCase() === "expertvoices") {
+
+    const finalCategoryId = category.categoryId;
+    const finalCategorySlug = category.slug;
+    if (category.slug?.toLowerCase() === "expertvoices") {
       if (!expertName || !expertRole || !expertImage || !shortBio) {
         return res.status(400).json({
           success: false,
@@ -140,7 +126,7 @@ export const createNews = async (req, res, next) => {
 
       categoryId: finalCategoryId,
 
-      categoryName: finalCategoryName,
+      categorySlug: finalCategorySlug,
       expertName,
       expertRole,
       expertImage,
@@ -182,7 +168,6 @@ export const editNews = async (req, res, next) => {
       mediaType,
       mediaUrl,
       categoryId,
-      categoryName,
       language,
       expertName,
       expertRole,
@@ -211,9 +196,9 @@ export const editNews = async (req, res, next) => {
 
       const newSlug = cleanTitle.toLowerCase().replace(/\s+/g, "-");
 
-      // Duplicate check
       const existingSlug = await News.findOne({
         slug: newSlug,
+        language: language || news.language,
         newsId: { $ne: id },
       });
 
@@ -225,7 +210,6 @@ export const editNews = async (req, res, next) => {
       }
 
       news.title = cleanTitle;
-
       news.slug = newSlug;
     }
 
@@ -253,10 +237,10 @@ export const editNews = async (req, res, next) => {
     }
 
     // ========================================
-    // UPDATE MEDIA
+    // UPDATE MEDIA URL
     // ========================================
 
-    if (mediaUrl) {
+    if (mediaUrl !== undefined) {
       news.mediaUrl = mediaUrl.trim();
     }
 
@@ -281,54 +265,26 @@ export const editNews = async (req, res, next) => {
     // UPDATE CATEGORY
     // ========================================
 
-    if (categoryId || categoryName) {
-      let finalCategoryId = categoryId;
+    if (categoryId) {
+      const category = await Category.findOne({
+        categoryId,
+      });
 
-      let finalCategoryName = "";
-
-      if (categoryId) {
-        const category = await Category.findOne({
-          categoryId,
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found",
         });
-
-        if (!category) {
-          return res.status(404).json({
-            success: false,
-            message: "Category not found",
-          });
-        }
-        // ✅ Language validation
-        if (category.language !== language) {
-          return res.status(400).json({
-            success: false,
-            message: "Category language mismatch",
-          });
-        }
-        finalCategoryId = category.categoryId;
-
-        finalCategoryName = category.categoryname;
-      } else if (categoryName?.trim()) {
-        const category = await Category.findOne({
-          categoryname: categoryName.trim(),
-          language: language || news.language,
-        });
-
-        if (!category) {
-          return res.status(404).json({
-            success: false,
-            message: "Category not found",
-          });
-        }
-
-        finalCategoryId = category.categoryId;
-
-        finalCategoryName = category.categoryname;
       }
 
-      news.categoryId = finalCategoryId;
-
-      news.categoryName = finalCategoryName;
+      news.categoryId = category.categoryId;
+      news.categorySlug = category.slug;
     }
+
+    // ========================================
+    // UPDATE EXPERT FIELDS
+    // ========================================
+
     if (expertName !== undefined) {
       news.expertName = expertName;
     }
@@ -344,10 +300,39 @@ export const editNews = async (req, res, next) => {
     if (shortBio !== undefined) {
       news.shortBio = shortBio;
     }
-    // Save
+
+    // ========================================
+    // EXPERT VOICES VALIDATION
+    // ========================================
+
+    const currentCategory = await Category.findOne({
+      categoryId: news.categoryId,
+    });
+
+    if (currentCategory?.slug === "expertvoices") {
+      if (
+        !news.expertName ||
+        !news.expertRole ||
+        !news.expertImage ||
+        !news.shortBio
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "All expert fields are required",
+        });
+      }
+    }
+
+    // ========================================
+    // SAVE NEWS
+    // ========================================
+
     await news.save();
 
-    // Update analytics
+    // ========================================
+    // UPDATE ANALYTICS
+    // ========================================
+
     await AnalyticsStat.findOneAndUpdate(
       {
         articleId: news.newsId,
@@ -368,7 +353,6 @@ export const editNews = async (req, res, next) => {
     next(error);
   }
 };
-
 // ========================================
 // DELETE NEWS
 // ========================================
@@ -410,30 +394,20 @@ export const deleteNews = async (req, res, next) => {
 
 export const getAllNews = async (req, res, next) => {
   try {
-    const { categoryId, categoryName, language } = req.query;
+    const { categoryId, language } = req.query;
 
-    // Pagination
     const { page, limit, skip } = pagination(req);
 
     const filter = {};
 
-    // Category filter
     if (categoryId) {
       filter.categoryId = categoryId;
     }
 
-    if (categoryName) {
-      filter.categoryName = {
-        $regex: new RegExp(categoryName, "i"),
-      };
-    }
-
-    // Language filter
     if (language) {
       filter.language = language;
     }
 
-    // Fetch news
     const newsList = await News.find(filter)
       .sort({
         createdAt: -1,
@@ -442,8 +416,29 @@ export const getAllNews = async (req, res, next) => {
       .limit(limit)
       .lean();
 
-    // Total
     const total = await News.countDocuments(filter);
+
+    // Get all categories
+    const categories = await Category.find().lean();
+
+    const categoryMap = {};
+
+    categories.forEach((cat) => {
+      categoryMap[cat.categoryId] = cat;
+    });
+
+    const formattedNews = newsList.map((news) => ({
+      ...news,
+
+      category: categoryMap[news.categoryId]
+        ? {
+            categoryId: categoryMap[news.categoryId].categoryId,
+            englishName: categoryMap[news.categoryId].englishName,
+            teluguName: categoryMap[news.categoryId].teluguName,
+            slug: categoryMap[news.categoryId].slug,
+          }
+        : null,
+    }));
 
     res.status(200).json({
       success: true,
@@ -456,7 +451,7 @@ export const getAllNews = async (req, res, next) => {
 
       totalPages: Math.ceil(total / limit),
 
-      allNews: newsList,
+      allNews: formattedNews,
     });
   } catch (error) {
     console.error("❌ Error fetching news:", error);
@@ -484,7 +479,10 @@ export const getNewsBySlug = async (req, res, next) => {
       });
     }
 
-    // Get analytics
+    const category = await Category.findOne({
+      categoryId: news.categoryId,
+    }).lean();
+
     const analytics = await AnalyticsStat.findOne({
       articleId: news.newsId,
     });
@@ -494,7 +492,18 @@ export const getNewsBySlug = async (req, res, next) => {
 
       message: "News fetched successfully",
 
-      news,
+      news: {
+        ...news,
+
+        category: category
+          ? {
+              categoryId: category.categoryId,
+              englishName: category.englishName,
+              teluguName: category.teluguName,
+              slug: category.slug,
+            }
+          : null,
+      },
 
       analytics,
     });

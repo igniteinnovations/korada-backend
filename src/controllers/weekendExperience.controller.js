@@ -16,6 +16,7 @@ export const createWeekendExperience = async (req, res, next) => {
       tags,
       mediaType,
       mediaUrl,
+      link,
       isFeatured,
     } = req.body;
 
@@ -86,6 +87,7 @@ export const createWeekendExperience = async (req, res, next) => {
       mediaType: mediaType || "image",
 
       mediaUrl,
+      link: link?.trim() || "",
 
       isFeatured: isFeatured || false,
     });

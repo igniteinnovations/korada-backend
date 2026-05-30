@@ -48,7 +48,7 @@ const newsSchema = new mongoose.Schema(
       required: true,
     },
 
-    categoryName: {
+    categorySlug: {
       type: String,
       required: true,
     },
@@ -76,6 +76,10 @@ const newsSchema = new mongoose.Schema(
   },
 );
 newsSchema.index({ slug: 1, language: 1 }, { unique: true });
+newsSchema.index({
+  categoryId: 1,
+  language: 1,
+});
 const News = mongoose.model("News", newsSchema);
 
 export default News;

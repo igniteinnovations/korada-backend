@@ -4,7 +4,7 @@ import compression from "compression";
 import morgan from "morgan";
 import errorHandler from "./middleware/errorHandler.js";
 import corsMiddleware from "./middleware/cors.js";
-import rateLimit from "./utils/rateLimit.js";
+//import rateLimit from "./utils/rateLimit.js";
 
 // Routes
 import adminAuthRoutes from "./routes/adminAuth.routes.js";
@@ -23,7 +23,7 @@ app.use(compression());
 // CORS
 app.use(corsMiddleware);
 // Rate Limit
-app.use(rateLimit);
+//app.use(rateLimit);
 // Logger
 app.use(morgan("dev"));
 // Health Check Route
