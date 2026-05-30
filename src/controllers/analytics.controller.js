@@ -258,16 +258,6 @@ export const getAllAnalytics = async (req, res, next) => {
         $unwind: "$article",
       },
       {
-        $project: {
-          articleId: 1,
-          totalViews: 1,
-          totalSessions: 1,
-          averageSessionTime: 1,
-          bounceRate: 1,
-          mediaUrl: "$article.mediaUrl",
-        },
-      },
-      {
         $sort: {
           totalViews: -1,
         },
