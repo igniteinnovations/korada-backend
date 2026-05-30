@@ -245,9 +245,24 @@ export const getTrendingArticles = async (req, res, next) => {
 
 export const getAllAnalytics = async (req, res, next) => {
   try {
-    const analytics = await AnalyticsStat.find().sort({
-      totalViews: -1,
-    });
+    const analytics = await AnalyticsStat.aggregate([
+      {
+        $lookup: {
+          from: "news",
+          localField: "articleId",
+          foreignField: "newsId",
+          as: "article",
+        },
+      },
+      {
+        $unwind: "$article",
+      },
+      {
+        $sort: {
+          totalViews: -1,
+        },
+      },
+    ]);
 
     res.status(200).json({
       success: true,
