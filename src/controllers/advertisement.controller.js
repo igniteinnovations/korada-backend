@@ -15,11 +15,31 @@ export const createAdvertisement = async (req, res, next) => {
         message: "Required fields are missing",
       });
     }
+    const existingAdvertisement = await Advertisement.findOne({
+      title: title.trim(),
+      imageUrl: imageUrl.trim(),
+    });
 
+    if (existingAdvertisement) {
+      return res.status(409).json({
+        success: false,
+        message: "Advertisement already exists",
+      });
+    }
     // Generate advertisementId
-    const totalAds = await Advertisement.countDocuments();
+    const lastAdvertisement = await Advertisement.findOne().sort({
+      advertisementId: -1,
+    });
 
-    const advertisementId = `AD${String(totalAds + 1).padStart(4, "0")}`;
+    let advertisementId = "AD0001";
+
+    if (lastAdvertisement) {
+      const lastNumber = parseInt(
+        lastAdvertisement.advertisementId.replace("AD", ""),
+      );
+
+      advertisementId = `AD${String(lastNumber + 1).padStart(4, "0")}`;
+    }
 
     // Create advertisement
     const advertisement = await Advertisement.create({
