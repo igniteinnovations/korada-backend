@@ -104,7 +104,7 @@ export const createWeekendExperience = async (req, res, next) => {
   }
 };
 
-// 🆕 Get All Weekend Experiences
+//  Get All Weekend Experiences
 export const getAllWeekendExperiences = async (req, res, next) => {
   try {
     const { location, featured } = req.query;
@@ -154,7 +154,7 @@ export const getAllWeekendExperiences = async (req, res, next) => {
   }
 };
 
-// 🆕 Get Single Weekend Experience
+//  Get Single Weekend Experience
 export const getSingleWeekendExperience = async (req, res, next) => {
   try {
     const { slug } = req.params;
@@ -181,7 +181,7 @@ export const getSingleWeekendExperience = async (req, res, next) => {
   }
 };
 
-// 🆕 Edit Weekend Experience
+//  Edit Weekend Experience
 export const editWeekendExperience = async (req, res, next) => {
   try {
     const { experienceId } = req.params;
@@ -221,7 +221,7 @@ export const editWeekendExperience = async (req, res, next) => {
   }
 };
 
-// 🆕 Delete Weekend Experience
+//  Delete Weekend Experience
 export const deleteWeekendExperience = async (req, res, next) => {
   try {
     const { experienceId } = req.params;

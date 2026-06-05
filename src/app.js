@@ -16,14 +16,19 @@ import AnalyticsRoutes from "./routes/analytics.routes.js";
 const app = express();
 // Body Parser
 app.use(express.json());
+
 // Security
 app.use(helmet());
+
 // Compression
 app.use(compression());
+
 // CORS
 app.use(corsMiddleware);
+
 // Rate Limit
 //app.use(rateLimit);
+
 // Logger
 app.use(morgan("dev"));
 // Health Check Route

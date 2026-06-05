@@ -2,7 +2,7 @@
 
 import redisClient from "../config/redis.js";
 
-// 🎯 Set Cache with expiry (TTL in seconds)
+//  Set Cache with expiry (TTL in seconds)
 export const setCache = async (key, value, expiry = 3600) => {
   try {
     await redisClient.set(key, JSON.stringify(value), {
@@ -13,7 +13,7 @@ export const setCache = async (key, value, expiry = 3600) => {
   }
 };
 
-// 🎯 Get Cache
+//  Get Cache
 export const getCache = async (key) => {
   try {
     const data = await redisClient.get(key);
@@ -24,7 +24,7 @@ export const getCache = async (key) => {
   }
 };
 
-// 🎯 Delete Cache
+// Delete Cache
 export const deleteCache = async (key) => {
   try {
     await redisClient.del(key);
@@ -33,7 +33,7 @@ export const deleteCache = async (key) => {
   }
 };
 
-// 🎯 Clear pattern (e.g., "stats:*")
+//  Clear pattern (e.g., "stats:*")
 export const clearCachePattern = async (pattern) => {
   try {
     const keys = await redisClient.keys(pattern);

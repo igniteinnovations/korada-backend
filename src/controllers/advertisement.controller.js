@@ -2,11 +2,18 @@ import Advertisement from "../models/advertisement.model.js";
 
 import pagination from "../utils/pagination.js";
 
-// 🆕 Create Advertisement
+// Create Advertisement
 export const createAdvertisement = async (req, res, next) => {
   try {
-    const { title, imageUrl, redirectUrl, isActive, startDate, endDate } =
-      req.body;
+    const {
+      title,
+      imageUrl,
+      redirectUrl,
+      position,
+      isActive,
+      startDate,
+      endDate,
+    } = req.body;
 
     // Validation
     if (!title?.trim() || !imageUrl?.trim()) {
@@ -50,6 +57,7 @@ export const createAdvertisement = async (req, res, next) => {
       imageUrl: imageUrl.trim(),
 
       redirectUrl: redirectUrl?.trim() || "",
+      position: position.trim(),
 
       isActive: isActive ?? true,
 
@@ -70,7 +78,7 @@ export const createAdvertisement = async (req, res, next) => {
   }
 };
 
-// 🆕 Get All Advertisements
+//  Get All Advertisements
 export const getAllAdvertisements = async (req, res, next) => {
   try {
     const { active } = req.query;
@@ -114,7 +122,7 @@ export const getAllAdvertisements = async (req, res, next) => {
   }
 };
 
-// 🆕 Get Single Advertisement
+// Get Single Advertisement
 export const getSingleAdvertisement = async (req, res, next) => {
   try {
     const { advertisementId } = req.params;
@@ -141,7 +149,7 @@ export const getSingleAdvertisement = async (req, res, next) => {
   }
 };
 
-// 🆕 Edit Advertisement
+// Edit Advertisement
 export const editAdvertisement = async (req, res, next) => {
   try {
     const { advertisementId } = req.params;
@@ -173,7 +181,7 @@ export const editAdvertisement = async (req, res, next) => {
   }
 };
 
-// 🆕 Delete Advertisement
+//  Delete Advertisement
 export const deleteAdvertisement = async (req, res, next) => {
   try {
     const { advertisementId } = req.params;
