@@ -1,5 +1,5 @@
 import Advertisement from "../models/advertisement.model.js";
-
+import Category from "../models/Category.js";
 import pagination from "../utils/pagination.js";
 
 // Create Advertisement
@@ -10,10 +10,12 @@ export const createAdvertisement = async (req, res, next) => {
       imageUrl,
       redirectUrl,
       position,
+      categoryIds = [],
       isActive,
       startDate,
       endDate,
     } = req.body;
+    let categoryNames = [];
 
     // Validation
     if (!title?.trim() || !imageUrl?.trim()) {
@@ -21,6 +23,21 @@ export const createAdvertisement = async (req, res, next) => {
         success: false,
         message: "Required fields are missing",
       });
+    }
+
+    if (categoryIds.length > 0) {
+      const categories = await Category.find({
+        categoryId: { $in: categoryIds },
+      });
+
+      if (categories.length !== categoryIds.length) {
+        return res.status(400).json({
+          success: false,
+          message: "One or more categories are invalid",
+        });
+      }
+
+      categoryNames = categories.map((cat) => cat.englishName);
     }
     const existingAdvertisement = await Advertisement.findOne({
       title: title.trim(),
@@ -57,8 +74,10 @@ export const createAdvertisement = async (req, res, next) => {
       imageUrl: imageUrl.trim(),
 
       redirectUrl: redirectUrl?.trim() || "",
-      position: position.trim(),
+      position: position?.trim() || "",
+      categoryIds,
 
+      categoryNames,
       isActive: isActive ?? true,
 
       startDate,
@@ -167,6 +186,25 @@ export const editAdvertisement = async (req, res, next) => {
 
     Object.assign(advertisement, req.body);
 
+    if (req.body.categoryIds) {
+      const categories = await Category.find({
+        categoryId: { $in: req.body.categoryIds },
+      });
+
+      if (categories.length !== req.body.categoryIds.length) {
+        return res.status(400).json({
+          success: false,
+          message: "One or more categories are invalid",
+        });
+      }
+
+      advertisement.categoryIds = req.body.categoryIds;
+
+      advertisement.categoryNames = categories.map(
+        (category) => category.englishName,
+      );
+    }
+
     await advertisement.save();
 
     res.status(200).json({
@@ -176,7 +214,6 @@ export const editAdvertisement = async (req, res, next) => {
     });
   } catch (error) {
     console.error("❌ Error updating advertisement:", error);
-
     next(error);
   }
 };

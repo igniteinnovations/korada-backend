@@ -25,9 +25,20 @@ const advertisementSchema = new mongoose.Schema(
     },
     position: {
       type: String,
-      required: true,
+      default: "",
     },
 
+    categoryIds: [
+      {
+        type: String,
+      },
+    ],
+
+    categoryNames: [
+      {
+        type: String,
+      },
+    ],
     isActive: {
       type: Boolean,
       default: true,
